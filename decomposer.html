@@ -5,333 +5,431 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SVG Color Decomposer</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e0e0e0; color: #333; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: auto; }
-        nav { width: 100%; background: #333; color: white; padding: 15px 0; text-align: center; }
-        nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: bold; }
-        nav a:hover { color: #6DA9FF; }
-        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 90%; max-width: 1700px; margin-top: 20px; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
-        h1 { color: #555; text-align: center; margin-top: 0; }
-        input[type="file"] { margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto; }
-        button { background-color: #6DA9FF; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; display: block; margin: 10px auto; transition: background-color 0.2s; }
-        button:hover { background-color: #87BFFF; }
-        .status { margin-top: 15px; font-style: italic; text-align: center; color: #777; }
-        .preview-wrapper { display: flex; justify-content: space-around; flex-wrap: wrap; width: 100%;}
-        .preview-container { margin-top: 20px; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9; width: 48%; min-width: 300px; box-sizing: border-box; }
-        .preview-container h2 { margin-top: 0; text-align: center; font-size: 1.2em; color: #555;}
-        .preview-svg-content { width: 100%; height: 400px; overflow: auto; border: 1px solid #eee; background: white;}
-        .preview-svg-content svg { display: block; max-width: 100%; max-height: 100%; margin: auto; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e0e0e0; color: #333; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden; }
+        nav { width: 100%; background: #222; color: white; padding: 15px 0; text-align: center; font-size: 1.1em; }
+        nav a { color: #aaa; margin: 0 15px; text-decoration: none; font-weight: bold; transition: color 0.2s; }
+        nav a.active { color: white; border-bottom: 2px solid #6DA9FF; padding-bottom: 5px; }
+        nav a:hover { color: white; }
+        .app-container { width: calc(100% - 20px); height: calc(100vh - 75px); max-width: 1700px; max-height: 95vh; background-color: #f8f8f8; border-radius: 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 10px; box-sizing: border-box; margin-top: 10px; }
+        
+        .output-window { width: 100%; flex-grow: 1; background-color: #ffffff; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; margin-bottom: 15px; }
+        
+        .svg-pane { width: 100%; height: 100%; display: none; align-items: center; justify-content: center; overflow: auto; }
+        .svg-pane.active { display: flex; }
+        .svg-pane svg { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .controls-bar { background-color: rgba(220, 220, 220, 0.9); backdrop-filter: blur(4px); padding: 8px 15px; border-radius: 25px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); display: flex; align-items: center; justify-content: center; gap: 15px; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 20;}
+        .control-select { padding: 8px 12px; border-radius: 20px; border: 1px solid #b8b8b8; background: white; font-family: inherit; font-size: 1em; color: #444; outline: none; cursor: pointer; }
+        .control-button, #processButton, #downloadSVGButton { padding: 0; font-size: 1.4em; background-color: #d8d8d8; color: #444; border: 1px solid #b8b8b8; border-radius: 50%; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; box-sizing: border-box; }
+        #processButton { width: 48px; height: 48px; background-color: #6DA9FF; color: white; border: none; box-shadow: 0 3px 7px rgba(0,0,0,0.2); z-index: 10; }
+        #processButton:hover:not(:disabled) { background-color: #87BFFF; }
+        #processButton:active:not(:disabled) { transform: scale(0.94); }
+        #processButton:disabled { background-color: #a0a0a0; color: #7a8290; cursor: not-allowed; }
+        #uploadOtherButton, #downloadSVGButton { width: 38px; height: 38px; font-size: 1.1em; }
+        #uploadOtherButton:hover:not(:disabled), #downloadSVGButton:hover:not(:disabled) { background-color: #e8e8e8; }
+        #uploadOtherButton:disabled, #downloadSVGButton:disabled { background-color: #c8c8c8; cursor: not-allowed; }
+        
+        .control-toggle { display: flex; align-items: center; background: white; border-radius: 20px; overflow: hidden; border: 1px solid #b8b8b8; }
+        .control-toggle button { flex: 1; border: none; background: none; padding: 8px 15px; font-size: 0.9em; font-weight: bold; color: #777; cursor: pointer; transition: 0.2s; }
+        .control-toggle button.active { background: #6DA9FF; color: white; }
+
+        #status { position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); font-size: 0.85em; color: #555; z-index: 15; background: rgba(255,255,255,0.8); padding: 4px 10px; border-radius: 10px;}
+        #svgFile { display: none; }
     </style>
 </head>
 <body>
     <nav>
-        <a href="index.html">Delaunay Generator</a> | 
-        <a href="decomposer.html">Color Decomposer</a>
+        <a href="index.html">Delaunay Generator</a>
+        <a href="decomposer.html" class="active">Color Decomposer</a>
     </nav>
-    <div class="container">
-        <h1>SVG Color Decomposer (v8.2.1)</h1>
-        <p style="text-align: center; color: #666; font-size: 0.9em; margin-bottom: 20px;">Генерирует разметку для 3D визуализации, включая явные точки среза.</p>
+    <div class="app-container" id="appContainer">
         
-        <input type="file" id="svgFile" accept=".svg,.txt">
-        <button id="processButton">Обработать и скачать</button>
-        <div id="status" class="status">Ожидание SVG файла...</div>
+        <div class="output-window">
+            <div id="paneOriginal" class="svg-pane active"></div>
+            <div id="paneDecomposed" class="svg-pane"></div>
+        </div>
 
-        <div class="preview-wrapper">
-            <div class="preview-container" id="originalPreviewContainer" style="display:none;">
-                <h2>Оригинал SVG</h2>
-                <div id="originalSvgPreview" class="preview-svg-content"></div>
-            </div>
-            <div class="preview-container" id="decomposedPreviewContainer" style="display:none;">
-                <h2>Разложенный SVG</h2>
-                <div id="decomposedSvgPreview" class="preview-svg-content"></div>
+        <input type="file" id="svgFile" accept=".svg,.txt">
+        
+        <div class="controls-bar">
+            <select id="exampleSelect" class="control-select">
+                <option value="assets/Mona_Lisa.svg">Мона Лиза (SVG)</option>
+                <option value="assets/Marilyn_Monroe.svg">Мэрилин Монро (SVG)</option>
+                <option value="custom">📁 Загрузить своё...</option>
+            </select>
+            
+            <button id="processButton" title="Загрузить/Разложить">▶</button>
+            <button class="control-button" id="downloadSVGButton" title="Скачать SVG" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
+            
+            <div class="control-toggle" id="viewToggle" style="display:none;">
+                <button id="btnOriginal" class="active">Оригинал</button>
+                <button id="btnDecomposed">Декомпозиция</button>
             </div>
         </div>
+        <div id="status"></div>
     </div>
 
-    <script>
-        const PRIMITIVE_COLORS_CSS_MAP = {
-            'black':  { fill: '#000000', stroke: 'none' }, 'white':  { fill: '#FFFFFF', stroke: 'none' },
-            'red':    { fill: '#FF0000', stroke: 'none' }, 'green':  { fill: '#00FF00', stroke: 'none' },
-            'blue':   { fill: '#0000FF', stroke: 'none' }, 'cyan':   { fill: '#00FFFF', stroke: 'none' },
-            'magenta':{ fill: '#FF00FF', stroke: 'none' }, 'yellow': { fill: '#FFFF00', stroke: 'none' }
-        };
-
-        function distance(p1, p2) { return Math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2); }
-        function parsePointsString(pointsStr) {
-            const coords = [];
-            if (typeof pointsStr !== 'string' || !pointsStr.trim()) { return coords; }
-            const cleanedPointsStr = pointsStr.trim().replace(/,/g, ' ').replace(/\s+/g, ' ');
-            const pointValues = cleanedPointsStr.split(' ').map(Number);
-            if (pointValues.some(isNaN)) return coords; 
-            for (let i = 0; i < pointValues.length; i += 2) {
-                if (pointValues[i+1] !== undefined) coords.push([pointValues[i], pointValues[i+1]]);
+<script>
+    const PRIMITIVE_COLORS_CSS_MAP = {
+        'black':  { fill: '#000000', stroke: 'none' }, 'white':  { fill: '#FFFFFF', stroke: 'none' },
+        'red':    { fill: '#FF0000', stroke: 'none' }, 'green':  { fill: '#00FF00', stroke: 'none' },
+        'blue':   { fill: '#0000FF', stroke: 'none' }, 'cyan':   { fill: '#00FFFF', stroke: 'none' },
+        'magenta':{ fill: '#FF00FF', stroke: 'none' }, 'yellow': { fill: '#FFFF00', stroke: 'none' }
+    };
+    function distance(p1, p2) { return Math.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2); }
+    function parsePointsString(pointsStr) {
+        const coords = []; if (typeof pointsStr !== 'string' || !pointsStr.trim()) return coords;
+        const ptVals = pointsStr.trim().replace(/,/g, ' ').replace(/\s+/g, ' ').split(' ').map(Number);
+        if (ptVals.some(isNaN)) return coords; 
+        for (let i = 0; i < ptVals.length; i += 2) if (ptVals[i+1] !== undefined) coords.push([ptVals[i], ptVals[i+1]]);
+        return coords;
+    }
+    function formatPointsForSVG(vertices) { return vertices.map(p => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(" "); }
+    function addPoints(p1,p2){return[p1[0]+p2[0],p1[1]+p2[1]];}
+    function subPoints(p1,p2){return[p1[0]-p2[0],p1[1]-p2[1]];}
+    function scalePointScalar(p,s){return[p[0]*s,p[1]*s];}
+    function getCentroid(v_a,v_b,v_c){return[(v_a[0]+v_b[0]+v_c[0])/3.0,(v_a[1]+v_b[1]+v_c[1])/3.0];}
+    function scaleVertexFromCenter(vertex, center, scaleFactor) {
+        const [vx, vy] = subPoints(vertex, center);
+        return addPoints(center, scalePointScalar([vx, vy], scaleFactor));
+    }
+    function getBarycenter(v_a,v_b,v_c,m_a,m_b,m_c){
+        const s_m=m_a+m_b+m_c; if(s_m < 1e-6)return getCentroid(v_a,v_b,v_c);
+        return[(m_a*v_a[0]+m_b*v_b[0]+m_c*v_c[0])/s_m,(m_a*v_a[1]+m_b*v_b[1]+m_c*v_c[1])/s_m];
+    }
+    function decomposeRgbToQ(r_in, g_in, b_in) {
+        let q_k = 255 - Math.max(r_in, g_in, b_in);
+        let q_w_total = Math.min(r_in, g_in, b_in);
+        let r_rem = r_in - q_w_total, g_rem = g_in - q_w_total, b_rem = b_in - q_w_total;
+        let q_c = 0, q_m = 0, q_y = 0;
+        if (r_rem > 0 && g_rem > 0 && b_rem == 0) { q_y = Math.min(r_rem, g_rem); r_rem -= q_y; g_rem -= q_y; }
+        else if (r_rem > 0 && b_rem > 0 && g_rem == 0) { q_m = Math.min(r_rem, b_rem); r_rem -= q_m; b_rem -= q_m; }
+        else if (g_rem > 0 && b_rem > 0 && r_rem == 0) { q_c = Math.min(g_rem, b_rem); g_rem -= q_c; b_rem -= q_c; }
+        return {'K':q_k,'W_total':q_w_total,'C':q_c,'M':q_m,'Y':q_y,'R_pure':r_rem,'G_pure':g_rem,'B_pure':b_rem};
+    }
+    function parseColorString(colorString) {
+        if (!colorString || colorString==='none' || colorString==='transparent') return null;
+        colorString = String(colorString).trim();
+        if (colorString.startsWith('#')) {
+            let hex = colorString.replace(/^#/,''); if (hex.length===3) hex=hex.split('').map(c=>c+c).join('');
+            if (hex.length===6) {
+                const r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);
+                if(!isNaN(r)&&!isNaN(g)&&!isNaN(b)) return [r,g,b];
             }
-            return coords;
         }
-        function formatPointsForSVG(vertices) { return vertices.map(p => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(" "); }
-        function addPoints(p1,p2){return[p1[0]+p2[0],p1[1]+p2[1]];}
-        function subPoints(p1,p2){return[p1[0]-p2[0],p1[1]-p2[1]];}
-        function scalePointScalar(p,s){return[p[0]*s,p[1]*s];}
-        function getCentroid(v_a,v_b,v_c){return[(v_a[0]+v_b[0]+v_c[0])/3.0,(v_a[1]+v_b[1]+v_c[1])/3.0];}
-        function scaleVertexFromCenter(vertex, center, scaleFactor) {
-            const [vx, vy] = subPoints(vertex, center);
-            const [scaled_vx, scaled_vy] = scalePointScalar([vx, vy], scaleFactor);
-            return addPoints(center, [scaled_vx, scaled_vy]);
+        const rgbMatch = colorString.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d\.]+)?\s*\)$/i);
+        if (rgbMatch) {
+            const r=parseInt(rgbMatch[1]),g=parseInt(rgbMatch[2]),b=parseInt(rgbMatch[3]);
+            if(r>=0&&r<=255&&g>=0&&g<=255&&b>=0&&b<=255) return [r,g,b];
         }
-        function getBarycenter(v_a,v_b,v_c,m_a,m_b,m_c){const s_m=m_a+m_b+m_c;if(s_m < 1e-6)return getCentroid(v_a,v_b,v_c);return[(m_a*v_a[0]+m_b*v_b[0]+m_c*v_c[0])/s_m,(m_a*v_a[1]+m_b*v_b[1]+m_c*v_c[1])/s_m];}
-        
-        function decomposeRgbToQ(r_in, g_in, b_in) {
-            let q_k = 255 - Math.max(r_in, g_in, b_in);
-            let q_w_total = Math.min(r_in, g_in, b_in);
-            let r_rem = r_in - q_w_total, g_rem = g_in - q_w_total, b_rem = b_in - q_w_total;
-            let q_c = 0, q_m = 0, q_y = 0;
-            if (r_rem > 0 && g_rem > 0 && b_rem == 0) { q_y = Math.min(r_rem, g_rem); r_rem -= q_y; g_rem -= q_y; }
-            else if (r_rem > 0 && b_rem > 0 && g_rem == 0) { q_m = Math.min(r_rem, b_rem); r_rem -= q_m; b_rem -= q_m; }
-            else if (g_rem > 0 && b_rem > 0 && r_rem == 0) { q_c = Math.min(g_rem, b_rem); g_rem -= q_c; b_rem -= q_c; }
-            return {'K':q_k,'W_total':q_w_total,'C':q_c,'M':q_m,'Y':q_y,'R_pure':r_rem,'G_pure':g_rem,'B_pure':b_rem};
+        return null;
+    }
+    
+    class SVGColorDecomposerJS {
+        constructor() { this.decomposedUnits = []; this.unitIdCounter = 0; }
+        _addDecomposedPolygon(unitData, vertices, colorKey, role, faceIndex = null) {
+            if (!vertices || vertices.length < 3 || !PRIMITIVE_COLORS_CSS_MAP[colorKey]) return;
+            let area = 0;
+            if (vertices.length === 3) area = 0.5*Math.abs(vertices[0][0]*(vertices[1][1]-vertices[2][1])+vertices[1][0]*(vertices[2][1]-vertices[0][1])+vertices[2][0]*(vertices[0][1]-vertices[1][1]));
+            else if (vertices.length === 4) { 
+                area = 0.5 * Math.abs(vertices[0][0]*vertices[1][1] + vertices[1][0]*vertices[2][1] + vertices[2][0]*vertices[3][1] + vertices[3][0]*vertices[0][1] -(vertices[1][0]*vertices[0][1] + vertices[2][0]*vertices[1][1] + vertices[3][0]*vertices[2][1] + vertices[0][0]*vertices[3][1]));
+            }
+            if (area < 0.001 && vertices.length > 0) return;
+            const polygonData = { vertices: vertices, colorKey: colorKey, role: role };
+            if (faceIndex !== null) polygonData.faceIndex = faceIndex;
+            unitData.polygons.push(polygonData);
         }
+        _decomposeOneTriangle(v_a_orig, v_b_orig, v_c_orig, r_in, g_in, b_in) {
+            this.unitIdCounter++;
+            const currentUnitData = { unitId: this.unitIdCounter, originalRgb: `${r_in},${g_in},${b_in}`, polygons: [], pyramidFootprintPoints: null, pyramidApexProjection: null, internalCutPoints: null };
+            const qValues = decomposeRgbToQ(r_in, g_in, b_in);
+            const q_k = qValues['K']; const q_w_total = qValues['W_total'];
+            const qCoreCandidates = [];
+            const qKeyToPrimitiveName = {'C':'cyan','M':'magenta','Y':'yellow','R_pure':'red','G_pure':'green','B_pure':'blue'};
+            Object.keys(qKeyToPrimitiveName).forEach(qKey => { if (qValues[qKey] > 0) qCoreCandidates.push({ name: qKeyToPrimitiveName[qKey], q: qValues[qKey] }); });
+            const qSumCore = qCoreCandidates.reduce((sum, item) => sum + item.q, 0);
 
-        function parseColorString(colorString) {
-            if (!colorString || colorString==='none' || colorString==='transparent') return null;
-            colorString = String(colorString).trim();
-            if (colorString.startsWith('#')) {
-                let hex = colorString.replace(/^#/,''); if (hex.length===3) hex=hex.split('').map(c=>c+c).join('');
-                if (hex.length===6) {
-                    const r=parseInt(hex.substring(0,2),16),g=parseInt(hex.substring(2,4),16),b=parseInt(hex.substring(4,6),16);
-                    if(!isNaN(r)&&!isNaN(g)&&!isNaN(b)) return [r,g,b];
-                }
+            if (q_w_total === 255) { 
+                this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, v_c_orig], 'white', 'white-base-strip');
+                currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig];
+                currentUnitData.pyramidApexProjection = getCentroid(v_a_orig,v_b_orig,v_c_orig);
+                this.decomposedUnits.push(currentUnitData); return;
             }
-            const rgbMatch = colorString.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*[\d\.]+)?\s*\)$/i);
-            if (rgbMatch) {
-                const r=parseInt(rgbMatch[1]),g=parseInt(rgbMatch[2]),b=parseInt(rgbMatch[3]);
-                if(r>=0&&r<=255&&g>=0&&g<=255&&b>=0&&b<=255) return [r,g,b];
+            if (q_k === 255 && q_w_total === 0) { 
+                currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig];
+                const p_apex_proj = getCentroid(v_a_orig, v_b_orig, v_c_orig);
+                currentUnitData.pyramidApexProjection = p_apex_proj;
+                this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, p_apex_proj], 'black', 'pyramid-colored-face', 0);
+                this._addDecomposedPolygon(currentUnitData, [v_b_orig, v_c_orig, p_apex_proj], 'black', 'pyramid-colored-face', 1);
+                this._addDecomposedPolygon(currentUnitData, [v_c_orig, v_a_orig, p_apex_proj], 'black', 'pyramid-colored-face', 2);
+                this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, v_c_orig], 'black', 'pyramid-apex-segment');
+                currentUnitData.internalCutPoints = [v_a_orig, v_b_orig, v_c_orig]; 
+                this.decomposedUnits.push(currentUnitData); return;
             }
-            return null;
-        }
-        
-        class SVGColorDecomposerJS {
-            constructor() { this.decomposedUnits = []; this.unitIdCounter = 0; }
-            _addDecomposedPolygon(unitData, vertices, colorKey, role, faceIndex = null) {
-                if (!vertices || vertices.length < 3 || !PRIMITIVE_COLORS_CSS_MAP[colorKey]) return;
-                let area = 0;
-                if (vertices.length === 3) area = 0.5*Math.abs(vertices[0][0]*(vertices[1][1]-vertices[2][1])+vertices[1][0]*(vertices[2][1]-vertices[0][1])+vertices[2][0]*(vertices[0][1]-vertices[1][1]));
-                else if (vertices.length === 4) { 
-                    area = 0.5 * Math.abs(vertices[0][0]*vertices[1][1] + vertices[1][0]*vertices[2][1] + vertices[2][0]*vertices[3][1] + vertices[3][0]*vertices[0][1] -(vertices[1][0]*vertices[0][1] + vertices[2][0]*vertices[1][1] + vertices[3][0]*vertices[2][1] + vertices[0][0]*vertices[3][1]));
-                }
-                if (area < 0.001 && vertices.length > 0) return;
-                const polygonData = { vertices: vertices, colorKey: colorKey, role: role };
-                if (faceIndex !== null) polygonData.faceIndex = faceIndex;
-                unitData.polygons.push(polygonData);
+             if (qSumCore === 255 && q_k === 0 && q_w_total === 0) { 
+                currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig];
+                const p_apex_proj = getCentroid(v_a_orig, v_b_orig, v_c_orig);
+                currentUnitData.pyramidApexProjection = p_apex_proj;
+                const coreColor = qCoreCandidates[0].name;
+                this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, p_apex_proj], coreColor, 'pyramid-colored-face', 0);
+                this._addDecomposedPolygon(currentUnitData, [v_b_orig, v_c_orig, p_apex_proj], coreColor, 'pyramid-colored-face', 1);
+                this._addDecomposedPolygon(currentUnitData, [v_c_orig, v_a_orig, p_apex_proj], coreColor, 'pyramid-colored-face', 2);
+                currentUnitData.internalCutPoints = [p_apex_proj, p_apex_proj, p_apex_proj]; 
+                this.decomposedUnits.push(currentUnitData); return;
             }
-            _decomposeOneTriangle(v_a_orig, v_b_orig, v_c_orig, r_in, g_in, b_in) {
-                this.unitIdCounter++;
-                const currentUnitData = { unitId: this.unitIdCounter, originalRgb: `${r_in},${g_in},${b_in}`, polygons: [], pyramidFootprintPoints: null, pyramidApexProjection: null, internalCutPoints: null };
-                const qValues = decomposeRgbToQ(r_in, g_in, b_in);
-                const q_k = qValues['K']; const q_w_total = qValues['W_total'];
-                const qCoreCandidates = [];
-                const qKeyToPrimitiveName = {'C':'cyan','M':'magenta','Y':'yellow','R_pure':'red','G_pure':'green','B_pure':'blue'};
-                Object.keys(qKeyToPrimitiveName).forEach(qKey => { if (qValues[qKey] > 0) qCoreCandidates.push({ name: qKeyToPrimitiveName[qKey], q: qValues[qKey] }); });
-                const qSumCore = qCoreCandidates.reduce((sum, item) => sum + item.q, 0);
 
-                if (q_w_total === 255) { 
-                    this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, v_c_orig], 'white', 'white-base-strip');
-                    currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig];
-                    currentUnitData.pyramidApexProjection = getCentroid(v_a_orig,v_b_orig,v_c_orig);
-                    this.decomposedUnits.push(currentUnitData); return;
-                }
-                if (q_k === 255 && q_w_total === 0) { 
-                    currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig];
-                    const p_apex_proj = getCentroid(v_a_orig, v_b_orig, v_c_orig);
-                    currentUnitData.pyramidApexProjection = p_apex_proj;
-                    this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, p_apex_proj], 'black', 'pyramid-colored-face', 0);
-                    this._addDecomposedPolygon(currentUnitData, [v_b_orig, v_c_orig, p_apex_proj], 'black', 'pyramid-colored-face', 1);
-                    this._addDecomposedPolygon(currentUnitData, [v_c_orig, v_a_orig, p_apex_proj], 'black', 'pyramid-colored-face', 2);
-                    this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, v_c_orig], 'black', 'pyramid-apex-segment');
-                    currentUnitData.internalCutPoints = [v_a_orig, v_b_orig, v_c_orig]; 
-                    this.decomposedUnits.push(currentUnitData); return;
-                }
-                 if (qSumCore === 255 && q_k === 0 && q_w_total === 0) { 
-                    currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig];
-                    const p_apex_proj = getCentroid(v_a_orig, v_b_orig, v_c_orig);
-                    currentUnitData.pyramidApexProjection = p_apex_proj;
-                    const coreColor = qCoreCandidates[0].name;
-                    this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, p_apex_proj], coreColor, 'pyramid-colored-face', 0);
-                    this._addDecomposedPolygon(currentUnitData, [v_b_orig, v_c_orig, p_apex_proj], coreColor, 'pyramid-colored-face', 1);
-                    this._addDecomposedPolygon(currentUnitData, [v_c_orig, v_a_orig, p_apex_proj], coreColor, 'pyramid-colored-face', 2);
-                    currentUnitData.internalCutPoints = [p_apex_proj, p_apex_proj, p_apex_proj]; 
-                    this.decomposedUnits.push(currentUnitData); return;
-                }
+            let t_eff_va = v_a_orig, t_eff_vb = v_b_orig, t_eff_vc = v_c_orig;
+            const p_cen_orig = getCentroid(v_a_orig, v_b_orig, v_c_orig);
 
-                let t_eff_va = v_a_orig, t_eff_vb = v_b_orig, t_eff_vc = v_c_orig;
-                const p_cen_orig = getCentroid(v_a_orig, v_b_orig, v_c_orig);
-
-                if (q_w_total > 0) {
-                    let scaleFactorNum = qSumCore + q_k;
-                    let scaleFactorDenom = qSumCore + q_k + q_w_total;
-                    if (scaleFactorDenom < 1e-6) scaleFactorDenom = 1.0; 
-                    const s_eff = Math.sqrt(scaleFactorNum / scaleFactorDenom);
-                    t_eff_va = scaleVertexFromCenter(v_a_orig, p_cen_orig, s_eff);
-                    t_eff_vb = scaleVertexFromCenter(v_b_orig, p_cen_orig, s_eff);
-                    t_eff_vc = scaleVertexFromCenter(v_c_orig, p_cen_orig, s_eff);
-                    this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, t_eff_vb, t_eff_va], 'white', 'white-base-strip');
-                    this._addDecomposedPolygon(currentUnitData, [v_b_orig, v_c_orig, t_eff_vc, t_eff_vb], 'white', 'white-base-strip');
-                    this._addDecomposedPolygon(currentUnitData, [v_c_orig, v_a_orig, t_eff_va, t_eff_vc], 'white', 'white-base-strip');
-                    currentUnitData.pyramidFootprintPoints = [t_eff_va, t_eff_vb, t_eff_vc];
-                } else { currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig]; }
-                
-                if (qSumCore === 0 && q_k === 0) { currentUnitData.pyramidApexProjection = getCentroid(t_eff_va, t_eff_vb, t_eff_vc); this.decomposedUnits.push(currentUnitData); return; }
-
-                let p_bary_eff_for_apex = getCentroid(t_eff_va, t_eff_vb, t_eff_vc); 
-                if (qSumCore > 0) { 
-                    qCoreCandidates.sort((a, b) => b.q - a.q || a.name.localeCompare(b.name));
-                    let mass_Va_contrib = 0, mass_Vb_contrib = 0, mass_Vc_contrib = 0;
-                    let color_face_VbVc, color_face_VcVa, color_face_VaVb; 
-                    const cNames = qCoreCandidates.map(c => c.name);
-                    const qValuesForMass = qCoreCandidates.map(c => c.q);
-                    if (qCoreCandidates.length === 1) {
-                        color_face_VaVb = cNames[0]; color_face_VbVc = cNames[0]; color_face_VcVa = cNames[0];
-                        mass_Va_contrib = qValuesForMass[0]; mass_Vb_contrib = qValuesForMass[0]; mass_Vc_contrib = qValuesForMass[0]; 
-                    } else { 
-                        const C1 = cNames[0], Q1 = qValuesForMass[0];
-                        const C2 = cNames[1], Q2 = qValuesForMass[1];
-                        const C3 = (cNames.length >= 3) ? cNames[2] : C2;
-                        const Q3 = (qValuesForMass.length >=3) ? qValuesForMass[2] : Q2;
-                        const sides_eff_color_assign = [ 
-                            { faceKey: 'VbVc', len: distance(t_eff_vb, t_eff_vc), color: '', q: 0 }, 
-                            { faceKey: 'VcVa', len: distance(t_eff_vc, t_eff_va), color: '', q: 0 }, 
-                            { faceKey: 'VaVb', len: distance(t_eff_va, t_eff_vb), color: '', q: 0 }  
-                        ];
-                        sides_eff_color_assign.sort((s1, s2) => s2.len - s1.len);
-                        sides_eff_color_assign[0].color = C1; sides_eff_color_assign[0].q = Q1;
-                        sides_eff_color_assign[1].color = C2; sides_eff_color_assign[1].q = Q2;
-                        sides_eff_color_assign[2].color = C3; sides_eff_color_assign[2].q = Q3;
-                        color_face_VbVc = sides_eff_color_assign.find(s => s.faceKey === 'VbVc').color;
-                        color_face_VcVa = sides_eff_color_assign.find(s => s.faceKey === 'VcVa').color;
-                        color_face_VaVb = sides_eff_color_assign.find(s => s.faceKey === 'VaVb').color;
-                        mass_Va_contrib = sides_eff_color_assign.find(s => s.faceKey === 'VbVc').q;
-                        mass_Vb_contrib = sides_eff_color_assign.find(s => s.faceKey === 'VcVa').q;
-                        mass_Vc_contrib = sides_eff_color_assign.find(s => s.faceKey === 'VaVb').q;
-                    }
-                    p_bary_eff_for_apex = getBarycenter(t_eff_va, t_eff_vb, t_eff_vc, mass_Va_contrib, mass_Vb_contrib, mass_Vc_contrib);
-                    currentUnitData.pyramidApexProjection = p_bary_eff_for_apex;
-                    
-                    let s_cut_factor;
-                    const denom_core_black = q_k + qSumCore;
-                    if (denom_core_black < 1e-6) s_cut_factor = 0; 
-                    else s_cut_factor = Math.sqrt(Math.max(0, q_k) / denom_core_black);
-
-                    if (q_k > 0) { 
-                        const v_a_cut = addPoints(p_bary_eff_for_apex, scalePointScalar(subPoints(t_eff_va, p_bary_eff_for_apex), s_cut_factor));
-                        const v_b_cut = addPoints(p_bary_eff_for_apex, scalePointScalar(subPoints(t_eff_vb, p_bary_eff_for_apex), s_cut_factor));
-                        const v_c_cut = addPoints(p_bary_eff_for_apex, scalePointScalar(subPoints(t_eff_vc, p_bary_eff_for_apex), s_cut_factor));
-                        currentUnitData.internalCutPoints = [v_a_cut, v_b_cut, v_c_cut]; 
-                        this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, v_b_cut, v_c_cut], 'black', 'pyramid-apex-segment');
-                        this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, v_c_cut, v_a_cut], 'black', 'pyramid-apex-segment');
-                        this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, v_a_cut, v_b_cut], 'black', 'pyramid-apex-segment');
-                        this._addDecomposedPolygon(currentUnitData, [t_eff_vb, t_eff_vc, v_c_cut, v_b_cut], color_face_VbVc, 'pyramid-colored-face', 0);
-                        this._addDecomposedPolygon(currentUnitData, [t_eff_vc, t_eff_va, v_a_cut, v_c_cut], color_face_VcVa, 'pyramid-colored-face', 1);
-                        this._addDecomposedPolygon(currentUnitData, [t_eff_va, t_eff_vb, v_b_cut, v_a_cut], color_face_VaVb, 'pyramid-colored-face', 2);
-                    } else { 
-                        this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vb, t_eff_vc], color_face_VbVc, 'pyramid-colored-face', 0);
-                        this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vc, t_eff_va], color_face_VcVa, 'pyramid-colored-face', 1);
-                        this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_va, t_eff_vb], color_face_VaVb, 'pyramid-colored-face', 2);
-                        currentUnitData.internalCutPoints = [p_bary_eff_for_apex, p_bary_eff_for_apex, p_bary_eff_for_apex]; 
-                    }
-                } else if (q_k > 0) { 
-                    p_bary_eff_for_apex = getCentroid(t_eff_va, t_eff_vb, t_eff_vc);
-                    currentUnitData.pyramidApexProjection = p_bary_eff_for_apex;
-                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vb, t_eff_vc], 'black', 'pyramid-colored-face', 0);
-                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vc, t_eff_va], 'black', 'pyramid-colored-face', 1);
-                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_va, t_eff_vb], 'black', 'pyramid-colored-face', 2);
-                    this._addDecomposedPolygon(currentUnitData, [t_eff_va, t_eff_vb, t_eff_vc], 'black', 'pyramid-apex-segment');
-                    currentUnitData.internalCutPoints = [t_eff_va, t_eff_vb, t_eff_vc]; 
-                }
-                this.decomposedUnits.push(currentUnitData);
-            }
+            if (q_w_total > 0) {
+                let scaleFactorNum = qSumCore + q_k;
+                let scaleFactorDenom = qSumCore + q_k + q_w_total;
+                if (scaleFactorDenom < 1e-6) scaleFactorDenom = 1.0; 
+                const s_eff = Math.sqrt(scaleFactorNum / scaleFactorDenom);
+                t_eff_va = scaleVertexFromCenter(v_a_orig, p_cen_orig, s_eff);
+                t_eff_vb = scaleVertexFromCenter(v_b_orig, p_cen_orig, s_eff);
+                t_eff_vc = scaleVertexFromCenter(v_c_orig, p_cen_orig, s_eff);
+                this._addDecomposedPolygon(currentUnitData, [v_a_orig, v_b_orig, t_eff_vb, t_eff_va], 'white', 'white-base-strip');
+                this._addDecomposedPolygon(currentUnitData, [v_b_orig, v_c_orig, t_eff_vc, t_eff_vb], 'white', 'white-base-strip');
+                this._addDecomposedPolygon(currentUnitData, [v_c_orig, v_a_orig, t_eff_va, t_eff_vc], 'white', 'white-base-strip');
+                currentUnitData.pyramidFootprintPoints = [t_eff_va, t_eff_vb, t_eff_vc];
+            } else { currentUnitData.pyramidFootprintPoints = [v_a_orig, v_b_orig, v_c_orig]; }
             
-            processSVGContent(svgContentString){
-                this.decomposedUnits = []; this.unitIdCounter = 0;
-                const parser=new DOMParser(),svgDoc=parser.parseFromString(svgContentString,"image/svg+xml"),svgRoot=svgDoc.documentElement;
-                if(svgDoc.getElementsByTagName("parsererror").length>0) return null;
-                const originalPolygons=svgRoot.querySelectorAll('polygon');
-                if(originalPolygons.length===0) return this.generateOutputSVG(svgRoot.getAttribute('viewBox'));
+            if (qSumCore === 0 && q_k === 0) { currentUnitData.pyramidApexProjection = getCentroid(t_eff_va, t_eff_vb, t_eff_vc); this.decomposedUnits.push(currentUnitData); return; }
 
-                originalPolygons.forEach((polyEl,idx)=>{
-                    const pointsStr=polyEl.getAttribute('points');
-                    if(!pointsStr) return;
-                    const vertices=parsePointsString(pointsStr);
-                    if(vertices.length===3){
-                        const[v_a,v_b,v_c]=vertices;
-                        let rgbColor=null;
-                        let fillAttr=polyEl.getAttribute('fill'),styleAttr=polyEl.getAttribute('style');
-                        if(fillAttr)rgbColor=parseColorString(fillAttr);
-                        if(!rgbColor&&styleAttr){const fm=styleAttr.match(/fill:\s*([^;]+)/i);if(fm&&fm[1])rgbColor=parseColorString(fm[1].trim());}
-                        if(rgbColor)this._decomposeOneTriangle(v_a,v_b,v_c,rgbColor[0],rgbColor[1],rgbColor[2]);
-                    }
-                });
-                return this.generateOutputSVG(svgRoot.getAttribute('viewBox'));
-            }
+            let p_bary_eff_for_apex = getCentroid(t_eff_va, t_eff_vb, t_eff_vc); 
+            if (qSumCore > 0) { 
+                qCoreCandidates.sort((a, b) => b.q - a.q || a.name.localeCompare(b.name));
+                let mass_Va_contrib = 0, mass_Vb_contrib = 0, mass_Vc_contrib = 0;
+                let color_face_VbVc, color_face_VcVa, color_face_VaVb; 
+                const cNames = qCoreCandidates.map(c => c.name);
+                const qValuesForMass = qCoreCandidates.map(c => c.q);
+                if (qCoreCandidates.length === 1) {
+                    color_face_VaVb = cNames[0]; color_face_VbVc = cNames[0]; color_face_VcVa = cNames[0];
+                    mass_Va_contrib = qValuesForMass[0]; mass_Vb_contrib = qValuesForMass[0]; mass_Vc_contrib = qValuesForMass[0]; 
+                } else { 
+                    const C1 = cNames[0], Q1 = qValuesForMass[0];
+                    const C2 = cNames[1], Q2 = qValuesForMass[1];
+                    const C3 = (cNames.length >= 3) ? cNames[2] : C2;
+                    const Q3 = (qValuesForMass.length >=3) ? qValuesForMass[2] : Q2;
+                    const sides_eff_color_assign = [ 
+                        { faceKey: 'VbVc', len: distance(t_eff_vb, t_eff_vc), color: '', q: 0 }, 
+                        { faceKey: 'VcVa', len: distance(t_eff_vc, t_eff_va), color: '', q: 0 }, 
+                        { faceKey: 'VaVb', len: distance(t_eff_va, t_eff_vb), color: '', q: 0 }  
+                    ];
+                    sides_eff_color_assign.sort((s1, s2) => s2.len - s1.len);
+                    sides_eff_color_assign[0].color = C1; sides_eff_color_assign[0].q = Q1;
+                    sides_eff_color_assign[1].color = C2; sides_eff_color_assign[1].q = Q2;
+                    sides_eff_color_assign[2].color = C3; sides_eff_color_assign[2].q = Q3;
+                    color_face_VbVc = sides_eff_color_assign.find(s => s.faceKey === 'VbVc').color;
+                    color_face_VcVa = sides_eff_color_assign.find(s => s.faceKey === 'VcVa').color;
+                    color_face_VaVb = sides_eff_color_assign.find(s => s.faceKey === 'VaVb').color;
+                    mass_Va_contrib = sides_eff_color_assign.find(s => s.faceKey === 'VbVc').q;
+                    mass_Vb_contrib = sides_eff_color_assign.find(s => s.faceKey === 'VcVa').q;
+                    mass_Vc_contrib = sides_eff_color_assign.find(s => s.faceKey === 'VaVb').q;
+                }
+                p_bary_eff_for_apex = getBarycenter(t_eff_va, t_eff_vb, t_eff_vc, mass_Va_contrib, mass_Vb_contrib, mass_Vc_contrib);
+                currentUnitData.pyramidApexProjection = p_bary_eff_for_apex;
+                
+                let s_cut_factor;
+                const denom_core_black = q_k + qSumCore;
+                if (denom_core_black < 1e-6) s_cut_factor = 0; 
+                else s_cut_factor = Math.sqrt(Math.max(0, q_k) / denom_core_black);
 
-            generateOutputSVG(viewBox=null){
-                let s=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg"`;
-                if(viewBox) s += ` viewBox="${viewBox}"`;
-                s+=`>\n  <style type="text/css">\n`;
-                for(const n in PRIMITIVE_COLORS_CSS_MAP)s+=`    .${n}{fill:${PRIMITIVE_COLORS_CSS_MAP[n].fill};stroke:none;stroke-width:0.1px;}\n`;
-                s+=`    .debug-pyramid-base {fill:none; stroke:purple; stroke-width:0.2px; opacity:0.5;}\n`;
-                s+=`    .debug-pyramid-apex {fill:pink; stroke:none; opacity:0.5;}\n`;
-                s+=`    .debug-internal-cut {fill:none; stroke:lime; stroke-width:0.15px; opacity:0.6; stroke-dasharray:1,1;}\n`;
-                s+=`  </style>\n`;
-                this.decomposedUnits.forEach(unit => {
-                    s += `  <g data-unit-id="${unit.unitId}" data-original-rgb="${unit.originalRgb}">\n`;
-                    unit.polygons.forEach(pd=>{
-                        const ps=formatPointsForSVG(pd.vertices);
-                        s+=`    <polygon class="${pd.colorKey}" data-role="${pd.role}"`;
-                        if (pd.faceIndex !== undefined && pd.faceIndex !== null) s += ` data-face-index="${pd.faceIndex}"`;
-                        s+=` points="${ps}" />\n`;
-                    });
-                    if (unit.pyramidFootprintPoints) {
-                        const psFootprint = formatPointsForSVG(unit.pyramidFootprintPoints);
-                        s += `    <polygon data-role="pyramid-footprint" class="debug-pyramid-base" points="${psFootprint}" />\n`;
-                    }
-                    if (unit.pyramidApexProjection) {
-                        s += `    <circle data-role="pyramid-apex-projection" class="debug-pyramid-apex" cx="${unit.pyramidApexProjection[0].toFixed(2)}" cy="${unit.pyramidApexProjection[1].toFixed(2)}" r="0.5" />\n`;
-                    }
-                    if (unit.internalCutPoints && unit.internalCutPoints.length === 3) {
-                        const psCutTriangle = formatPointsForSVG(unit.internalCutPoints);
-                        s += `    <polygon data-role="internal-cut-triangle" class="debug-internal-cut" points="${psCutTriangle}" />\n`;
-                    }
-                    s += `  </g>\n`;
-                });
-                s+=`</svg>`;
-                return s;
+                if (q_k > 0) { 
+                    const v_a_cut = addPoints(p_bary_eff_for_apex, scalePointScalar(subPoints(t_eff_va, p_bary_eff_for_apex), s_cut_factor));
+                    const v_b_cut = addPoints(p_bary_eff_for_apex, scalePointScalar(subPoints(t_eff_vb, p_bary_eff_for_apex), s_cut_factor));
+                    const v_c_cut = addPoints(p_bary_eff_for_apex, scalePointScalar(subPoints(t_eff_vc, p_bary_eff_for_apex), s_cut_factor));
+                    currentUnitData.internalCutPoints = [v_a_cut, v_b_cut, v_c_cut]; 
+                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, v_b_cut, v_c_cut], 'black', 'pyramid-apex-segment');
+                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, v_c_cut, v_a_cut], 'black', 'pyramid-apex-segment');
+                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, v_a_cut, v_b_cut], 'black', 'pyramid-apex-segment');
+                    this._addDecomposedPolygon(currentUnitData, [t_eff_vb, t_eff_vc, v_c_cut, v_b_cut], color_face_VbVc, 'pyramid-colored-face', 0);
+                    this._addDecomposedPolygon(currentUnitData, [t_eff_vc, t_eff_va, v_a_cut, v_c_cut], color_face_VcVa, 'pyramid-colored-face', 1);
+                    this._addDecomposedPolygon(currentUnitData, [t_eff_va, t_eff_vb, v_b_cut, v_a_cut], color_face_VaVb, 'pyramid-colored-face', 2);
+                } else { 
+                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vb, t_eff_vc], color_face_VbVc, 'pyramid-colored-face', 0);
+                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vc, t_eff_va], color_face_VcVa, 'pyramid-colored-face', 1);
+                    this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_va, t_eff_vb], color_face_VaVb, 'pyramid-colored-face', 2);
+                    currentUnitData.internalCutPoints = [p_bary_eff_for_apex, p_bary_eff_for_apex, p_bary_eff_for_apex]; 
+                }
+            } else if (q_k > 0) { 
+                p_bary_eff_for_apex = getCentroid(t_eff_va, t_eff_vb, t_eff_vc);
+                currentUnitData.pyramidApexProjection = p_bary_eff_for_apex;
+                this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vb, t_eff_vc], 'black', 'pyramid-colored-face', 0);
+                this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_vc, t_eff_va], 'black', 'pyramid-colored-face', 1);
+                this._addDecomposedPolygon(currentUnitData, [p_bary_eff_for_apex, t_eff_va, t_eff_vb], 'black', 'pyramid-colored-face', 2);
+                this._addDecomposedPolygon(currentUnitData, [t_eff_va, t_eff_vb, t_eff_vc], 'black', 'pyramid-apex-segment');
+                currentUnitData.internalCutPoints = [t_eff_va, t_eff_vb, t_eff_vc]; 
             }
+            this.decomposedUnits.push(currentUnitData);
+        }
+        
+        processSVGContent(svgContentString){
+            this.decomposedUnits = []; this.unitIdCounter = 0;
+            const parser=new DOMParser(),svgDoc=parser.parseFromString(svgContentString,"image/svg+xml"),svgRoot=svgDoc.documentElement;
+            if(svgDoc.getElementsByTagName("parsererror").length>0) return null;
+            const originalPolygons=svgRoot.querySelectorAll('polygon');
+            if(originalPolygons.length===0) return this.generateOutputSVG(svgRoot.getAttribute('viewBox'));
+
+            originalPolygons.forEach((polyEl,idx)=>{
+                const pointsStr=polyEl.getAttribute('points');
+                if(!pointsStr) return;
+                const vertices=parsePointsString(pointsStr);
+                if(vertices.length===3){
+                    const[v_a,v_b,v_c]=vertices;
+                    let rgbColor=null;
+                    let fillAttr=polyEl.getAttribute('fill'),styleAttr=polyEl.getAttribute('style');
+                    if(fillAttr)rgbColor=parseColorString(fillAttr);
+                    if(!rgbColor&&styleAttr){const fm=styleAttr.match(/fill:\s*([^;]+)/i);if(fm&&fm[1])rgbColor=parseColorString(fm[1].trim());}
+                    if(rgbColor)this._decomposeOneTriangle(v_a,v_b,v_c,rgbColor[0],rgbColor[1],rgbColor[2]);
+                }
+            });
+            return this.generateOutputSVG(svgRoot.getAttribute('viewBox'));
         }
 
-        const fileInput=document.getElementById('svgFile'),processButton=document.getElementById('processButton'),statusDiv=document.getElementById('status'),originalPreviewDiv=document.getElementById('originalSvgPreview'),decomposedPreviewDiv=document.getElementById('decomposedSvgPreview'),originalPreviewContainer=document.getElementById('originalPreviewContainer'),decomposedPreviewContainer=document.getElementById('decomposedPreviewContainer');
-        processButton.addEventListener('click',()=>{
-            if(!fileInput.files||fileInput.files.length===0){statusDiv.textContent='Пожалуйста, выберите SVG файл.';return;}
-            const file=fileInput.files[0];
-            if(!file.name.endsWith('.svg') && !file.name.endsWith('.txt') ){statusDiv.textContent='Пожалуйста, выберите файл с расширением .svg или .txt';return;}
-            statusDiv.textContent='Обработка...';originalPreviewContainer.style.display='none';decomposedPreviewContainer.style.display='none';originalPreviewDiv.innerHTML='';decomposedPreviewDiv.innerHTML='';
-            const reader=new FileReader();
-            reader.onload=(event)=>{
-                const svgContent=event.target.result;
-                originalPreviewDiv.innerHTML=svgContent;
-                originalPreviewContainer.style.display='block';
-                try{
-                    const decomposer=new SVGColorDecomposerJS(),outputSvgContent=decomposer.processSVGContent(svgContent);
-                    if(outputSvgContent){
-                        decomposedPreviewDiv.innerHTML=outputSvgContent;
-                        decomposedPreviewContainer.style.display='block';
-                        const blob=new Blob([outputSvgContent],{type:'image/svg+xml'}),url=URL.createObjectURL(blob),a=document.createElement('a');
-                        a.href=url; a.download='decomposed_attrV2_'+file.name.replace(/\.[^/.]+$/, "") + ".svg";
-                        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-                        statusDiv.textContent='Готово! Файл скачан. Превью выше.';
-                    }else statusDiv.textContent='Ошибка при обработке SVG.';
-                }catch(e){ statusDiv.textContent=`Ошибка: ${e.message}`; }
-            };
-            reader.onerror=()=>{statusDiv.textContent='Ошибка при чтении файла.';};
-            reader.readAsText(file);
-        });
-    </script>
+        generateOutputSVG(viewBox=null){
+            let s=`<svg version="1.1" xmlns="http://www.w3.org/2000/svg"`;
+            if(viewBox) s += ` viewBox="${viewBox}"`;
+            s+=`>\n  <style type="text/css">\n`;
+            for(const n in PRIMITIVE_COLORS_CSS_MAP)s+=`    .${n}{fill:${PRIMITIVE_COLORS_CSS_MAP[n].fill};stroke:none;stroke-width:0.1px;}\n`;
+            s+=`    .debug-pyramid-base {fill:none; stroke:purple; stroke-width:0.2px; opacity:0.5;}\n`;
+            s+=`    .debug-pyramid-apex {fill:pink; stroke:none; opacity:0.5;}\n`;
+            s+=`    .debug-internal-cut {fill:none; stroke:lime; stroke-width:0.15px; opacity:0.6; stroke-dasharray:1,1;}\n`;
+            s+=`  </style>\n`;
+            this.decomposedUnits.forEach(unit => {
+                s += `  <g data-unit-id="${unit.unitId}" data-original-rgb="${unit.originalRgb}">\n`;
+                unit.polygons.forEach(pd=>{
+                    const ps=formatPointsForSVG(pd.vertices);
+                    s+=`    <polygon class="${pd.colorKey}" data-role="${pd.role}"`;
+                    if (pd.faceIndex !== undefined && pd.faceIndex !== null) s += ` data-face-index="${pd.faceIndex}"`;
+                    s+=` points="${ps}" />\n`;
+                });
+                if (unit.pyramidFootprintPoints) {
+                    const psFootprint = formatPointsForSVG(unit.pyramidFootprintPoints);
+                    s += `    <polygon data-role="pyramid-footprint" class="debug-pyramid-base" points="${psFootprint}" />\n`;
+                }
+                if (unit.pyramidApexProjection) {
+                    s += `    <circle data-role="pyramid-apex-projection" class="debug-pyramid-apex" cx="${unit.pyramidApexProjection[0].toFixed(2)}" cy="${unit.pyramidApexProjection[1].toFixed(2)}" r="0.5" />\n`;
+                }
+                if (unit.internalCutPoints && unit.internalCutPoints.length === 3) {
+                    const psCutTriangle = formatPointsForSVG(unit.internalCutPoints);
+                    s += `    <polygon data-role="internal-cut-triangle" class="debug-internal-cut" points="${psCutTriangle}" />\n`;
+                }
+                s += `  </g>\n`;
+            });
+            s+=`</svg>`;
+            return s;
+        }
+    }
+
+    const fileInput=document.getElementById('svgFile');
+    const processButton=document.getElementById('processButton');
+    const statusDiv=document.getElementById('status');
+    const exampleSelect = document.getElementById('exampleSelect');
+    
+    const paneOriginal = document.getElementById('paneOriginal');
+    const paneDecomposed = document.getElementById('paneDecomposed');
+    const viewToggle = document.getElementById('viewToggle');
+    const btnOriginal = document.getElementById('btnOriginal');
+    const btnDecomposed = document.getElementById('btnDecomposed');
+    const downloadSVGButtonEl = document.getElementById('downloadSVGButton');
+
+    let currentDecomposedSVG = null;
+    let currentRawSVG = null;
+    let processing = false;
+
+    exampleSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'custom') fileInput.click();
+        else loadExampleSVG(e.target.value);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) { exampleSelect.selectedIndex = 0; return; }
+        exampleSelect.options[exampleSelect.options.length-1].text = `📁 ${file.name}`;
+        exampleSelect.value = 'custom';
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            currentRawSVG = ev.target.result;
+            processRawSVG();
+        };
+        reader.readAsText(file);
+    });
+
+    processButton.addEventListener('click', () => {
+        if(!currentRawSVG && !processing) {
+            if(exampleSelect.value === 'custom') fileInput.click();
+            else loadExampleSVG(exampleSelect.value);
+        } else if (currentRawSVG && !processing) {
+            processRawSVG();
+        }
+    });
+
+    btnOriginal.addEventListener('click', () => {
+        btnOriginal.classList.add('active'); btnDecomposed.classList.remove('active');
+        paneOriginal.classList.add('active'); paneDecomposed.classList.remove('active');
+    });
+    btnDecomposed.addEventListener('click', () => {
+        btnDecomposed.classList.add('active'); btnOriginal.classList.remove('active');
+        paneDecomposed.classList.add('active'); paneOriginal.classList.remove('active');
+    });
+
+    downloadSVGButtonEl.addEventListener('click', () => {
+        if(currentDecomposedSVG) {
+            const blob = new Blob([currentDecomposedSVG], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url;
+            a.download = (exampleSelect.value !== 'custom' ? exampleSelect.value.split('/').pop().split('.')[0] : 'decomposed_art') + '_decomposed.svg';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadExampleSVG(exampleSelect.value);
+    });
+
+    function loadExampleSVG(url) {
+        processing = true; statusDiv.textContent = 'Загрузка примера...';
+        viewToggle.style.display = 'none'; downloadSVGButtonEl.style.display = 'none';
+        paneOriginal.innerHTML = ''; paneDecomposed.innerHTML = '';
+        
+        fetch(url)
+            .then(res => res.text())
+            .then(text => {
+                currentRawSVG = text;
+                processRawSVG();
+            })
+            .catch(err => {
+                statusDiv.textContent = 'Ошибка загрузки примера.'; processing = false;
+            });
+    }
+
+    function processRawSVG() {
+        processing = true; statusDiv.textContent = 'Обработка...';
+        paneOriginal.innerHTML = currentRawSVG;
+        
+        setTimeout(() => {
+            try {
+                const decomposer = new SVGColorDecomposerJS();
+                currentDecomposedSVG = decomposer.processSVGContent(currentRawSVG);
+                if(currentDecomposedSVG) {
+                    paneDecomposed.innerHTML = currentDecomposedSVG;
+                    statusDiv.textContent = 'Готово!';
+                    viewToggle.style.display = 'flex';
+                    downloadSVGButtonEl.style.display = 'flex';
+                    btnDecomposed.click(); // auto switch to decomp view
+                } else {
+                    statusDiv.textContent = 'Ошибка парсинга SVG.';
+                }
+            } catch(e) {
+                statusDiv.textContent = `Ошибка: ${e.message}`;
+            }
+            processing = false;
+        }, 50);
+    }
+</script>
 </body>
 </html>
