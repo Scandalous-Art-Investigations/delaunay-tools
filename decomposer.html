@@ -5,35 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SVG Color Decomposer</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e0e0e0; color: #333; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow: hidden; }
-        nav { width: 100%; background: #222; color: white; padding: 15px 0; text-align: center; font-size: 1.1em; }
-        nav a { color: #aaa; margin: 0 15px; text-decoration: none; font-weight: bold; transition: color 0.2s; }
-        nav a.active { color: white; border-bottom: 2px solid #6DA9FF; padding-bottom: 5px; }
-        nav a:hover { color: white; }
-        .app-container { width: calc(100% - 20px); height: calc(100vh - 75px); max-width: 1700px; max-height: 95vh; background-color: #f8f8f8; border-radius: 10px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; padding: 10px; box-sizing: border-box; margin-top: 10px; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #111; color: #eee; display: flex; flex-direction: column; overflow: hidden; }
+        nav { background: #000; padding: 15px 0; text-align: center; font-size: 1.1em; flex-shrink: 0; }
+        nav a { color: #888; margin: 0 15px; text-decoration: none; font-weight: bold; transition: 0.2s; }
+        nav a.active { color: #fff; border-bottom: 2px solid #6DA9FF; padding-bottom: 5px; }
+        nav a:hover { color: #fff; }
         
-        .output-window { width: 100%; flex-grow: 1; background-color: #ffffff; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; margin-bottom: 15px; }
+        .app-container { flex-grow: 1; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; min-height: 0; position: relative; max-width: 1600px; margin: 0 auto; width: 100%; }
         
-        .svg-pane { width: 100%; height: 100%; display: none; align-items: center; justify-content: center; overflow: auto; }
+        .output-window { flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 0; background: #1a1a1a; border-radius: 8px; position: relative; overflow: hidden; }
+        
+        .svg-pane { width: 100%; height: 100%; display: none; align-items: center; justify-content: center; overflow: hidden; }
         .svg-pane.active { display: flex; }
         .svg-pane svg { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .controls-bar { background-color: rgba(220, 220, 220, 0.9); backdrop-filter: blur(4px); padding: 8px 15px; border-radius: 25px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); display: flex; align-items: center; justify-content: center; gap: 15px; position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 20;}
-        .control-select { padding: 8px 12px; border-radius: 20px; border: 1px solid #b8b8b8; background: white; font-family: inherit; font-size: 1em; color: #444; outline: none; cursor: pointer; }
-        .control-button, #processButton, #downloadSVGButton { padding: 0; font-size: 1.4em; background-color: #d8d8d8; color: #444; border: 1px solid #b8b8b8; border-radius: 50%; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; box-sizing: border-box; }
-        #processButton { width: 48px; height: 48px; background-color: #6DA9FF; color: white; border: none; box-shadow: 0 3px 7px rgba(0,0,0,0.2); z-index: 10; }
-        #processButton:hover:not(:disabled) { background-color: #87BFFF; }
-        #processButton:active:not(:disabled) { transform: scale(0.94); }
-        #processButton:disabled { background-color: #a0a0a0; color: #7a8290; cursor: not-allowed; }
-        #uploadOtherButton, #downloadSVGButton { width: 38px; height: 38px; font-size: 1.1em; }
-        #uploadOtherButton:hover:not(:disabled), #downloadSVGButton:hover:not(:disabled) { background-color: #e8e8e8; }
-        #uploadOtherButton:disabled, #downloadSVGButton:disabled { background-color: #c8c8c8; cursor: not-allowed; }
+        .controls-bar { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 15px; padding-top: 20px; }
         
-        .control-toggle { display: flex; align-items: center; background: white; border-radius: 20px; overflow: hidden; border: 1px solid #b8b8b8; }
-        .control-toggle button { flex: 1; border: none; background: none; padding: 8px 15px; font-size: 0.9em; font-weight: bold; color: #777; cursor: pointer; transition: 0.2s; }
-        .control-toggle button.active { background: #6DA9FF; color: white; }
+        .control-select { padding: 10px 15px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; font-size: 1em; cursor: pointer; outline: none; }
+        .control-button, #processButton, #downloadSVGButton { padding: 0; background-color: #333; color: #fff; border: 1px solid #444; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        #processButton { width: 50px; height: 50px; background-color: #6DA9FF; border: none; color: #000; }
+        #processButton:hover:not(:disabled) { background-color: #87BFFF; }
+        #processButton:disabled { opacity: 0.5; cursor: not-allowed; }
+        #downloadSVGButton { width: 40px; height: 40px; }
+        #downloadSVGButton:hover:not(:disabled) { background-color: #555; }
+        #downloadSVGButton:disabled { display: none; }
+        
+        .control-toggle { display: flex; align-items: center; background: #222; border-radius: 20px; overflow: hidden; border: 1px solid #444; }
+        .control-toggle button { flex: 1; border: none; background: none; padding: 10px 20px; font-size: 0.95em; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; }
+        .control-toggle button.active { background: #6DA9FF; color: #000; }
 
-        #status { position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); font-size: 0.85em; color: #555; z-index: 15; background: rgba(255,255,255,0.8); padding: 4px 10px; border-radius: 10px;}
+        #status { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 30px; font-weight: bold; z-index: 100; letter-spacing: 1px; pointer-events: none; }
         #svgFile { display: none; }
     </style>
 </head>
@@ -42,11 +43,13 @@
         <a href="index.html">Delaunay Generator</a>
         <a href="decomposer.html" class="active">Color Decomposer</a>
     </nav>
+    
     <div class="app-container" id="appContainer">
         
         <div class="output-window">
             <div id="paneOriginal" class="svg-pane active"></div>
             <div id="paneDecomposed" class="svg-pane"></div>
+            <div id="status">Обработка...</div>
         </div>
 
         <input type="file" id="svgFile" accept=".svg,.txt">
@@ -68,7 +71,6 @@
                 <button id="btnDecomposed">Декомпозиция</button>
             </div>
         </div>
-        <div id="status"></div>
     </div>
 
 <script>
@@ -341,6 +343,11 @@
     let currentRawSVG = null;
     let processing = false;
 
+    function showStatus(text) {
+        if(text) { statusDiv.textContent = text; statusDiv.style.display = 'block'; }
+        else { statusDiv.style.display = 'none'; }
+    }
+
     exampleSelect.addEventListener('change', (e) => {
         if (e.target.value === 'custom') fileInput.click();
         else loadExampleSVG(e.target.value);
@@ -392,7 +399,7 @@
     });
 
     function loadExampleSVG(url) {
-        processing = true; statusDiv.textContent = 'Загрузка примера...';
+        processing = true; showStatus('Загрузка...');
         viewToggle.style.display = 'none'; downloadSVGButtonEl.style.display = 'none';
         paneOriginal.innerHTML = ''; paneDecomposed.innerHTML = '';
         
@@ -403,12 +410,12 @@
                 processRawSVG();
             })
             .catch(err => {
-                statusDiv.textContent = 'Ошибка загрузки примера.'; processing = false;
+                showStatus('Ошибка загрузки примера.'); processing = false;
             });
     }
 
     function processRawSVG() {
-        processing = true; statusDiv.textContent = 'Обработка...';
+        processing = true; showStatus('Обработка...');
         paneOriginal.innerHTML = currentRawSVG;
         
         setTimeout(() => {
@@ -417,19 +424,19 @@
                 currentDecomposedSVG = decomposer.processSVGContent(currentRawSVG);
                 if(currentDecomposedSVG) {
                     paneDecomposed.innerHTML = currentDecomposedSVG;
-                    statusDiv.textContent = 'Готово!';
                     viewToggle.style.display = 'flex';
                     downloadSVGButtonEl.style.display = 'flex';
-                    btnDecomposed.click(); // auto switch to decomp view
+                    btnDecomposed.click(); 
+                    showStatus(null); // Убираем плашку, никаких "Готово"
                 } else {
-                    statusDiv.textContent = 'Ошибка парсинга SVG.';
+                    showStatus('Ошибка парсинга SVG.');
                 }
             } catch(e) {
-                statusDiv.textContent = `Ошибка: ${e.message}`;
+                showStatus(`Ошибка: ${e.message}`);
             }
             processing = false;
         }, 50);
     }
 </script>
 </body>
-</html>
+</html>EOF
