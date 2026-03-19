@@ -55,8 +55,8 @@
     </nav>
     <div class="app-container" id="appContainer">
         <div class="output-window">
-            <div id="paneOriginal" class="svg-pane"><img id="originalImagePreview" /></div>
-            <div id="paneDelaunay" class="svg-pane active"><canvas id="outputCanvas"></canvas></div>
+            <div id="paneOriginal" class="svg-pane"><img id="originalImagePreview" style="cursor: pointer;" /></div>
+            <div id="paneDelaunay" class="svg-pane active"><canvas id="outputCanvas" style="cursor: pointer;" title="Click and hold to view original image"></canvas></div>
             <div id="status">Processing...</div>
         </div>
         
@@ -79,16 +79,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l-5.32 5.32"></path></svg>
             </button>
             
-            <div class="control-toggle" id="viewToggle" style="display:none;">
-                <button id="btnOriginal">Original</button>
-                <button id="btnDelaunay" class="active">Delaunay</button>
-            </div>
-
-            <div class="control-group">
-                <input type="checkbox" id="colorTriangles" checked>
-                <label for="colorTriangles">Fill Triangles</label>
-            </div>
-
+            <!-- viewToggle removed -->
             <button class="control-button" id="downloadSVGButton" title="Download SVG" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
@@ -112,9 +103,25 @@
     
     const paneOriginal = document.getElementById('paneOriginal');
     const paneDelaunay = document.getElementById('paneDelaunay');
-    const viewToggle = document.getElementById('viewToggle');
-    const btnOriginal = document.getElementById('btnOriginal');
-    const btnDelaunay = document.getElementById('btnDelaunay');
+
+    // Click/hold interaction to view original image
+    paneDelaunay.addEventListener('mousedown', () => {
+        paneDelaunay.classList.remove('active');
+        paneOriginal.classList.add('active');
+    });
+    window.addEventListener('mouseup', () => {
+        paneOriginal.classList.remove('active');
+        paneDelaunay.classList.add('active');
+    });
+    // For touch devices
+    paneDelaunay.addEventListener('touchstart', (e) => {
+        paneDelaunay.classList.remove('active');
+        paneOriginal.classList.add('active');
+    });
+    window.addEventListener('touchend', () => {
+        paneOriginal.classList.remove('active');
+        paneDelaunay.classList.add('active');
+    });
 
     let originalImageData = null;
     let imageWidth = 0; let imageHeight = 0;
@@ -156,15 +163,6 @@
         if (originalImageData && !processing) processImage();
     });
 
-    btnOriginal.addEventListener('click', () => {
-        btnOriginal.classList.add('active'); btnDelaunay.classList.remove('active');
-        paneOriginal.classList.add('active'); paneDelaunay.classList.remove('active');
-    });
-    btnDelaunay.addEventListener('click', () => {
-        btnDelaunay.classList.add('active'); btnOriginal.classList.remove('active');
-        paneDelaunay.classList.add('active'); paneOriginal.classList.remove('active');
-    });
-
     downloadSVGButtonEl.addEventListener('click', () => { if (currentDelaunayData && !processing) downloadSVG(); });
     
     imageFileEl.addEventListener('change', (e) => {
@@ -173,8 +171,6 @@
         currentFileName = file.name.split('.')[0];
         loadImageFromFile(file);
     });
-
-    colorTrianglesEl.addEventListener('change', () => { if (originalImageData && !processing) processImage(); });
 
     document.addEventListener('DOMContentLoaded', () => {
         loadExample('Mona_Lisa.png'); 
@@ -187,7 +183,6 @@
 
     function loadExample(url) {
         processing = true; currentDelaunayData = null; updateButtonState(false, false);
-        viewToggle.style.display = 'none';
         showStatus('Loading...');
         currentFileName = url.split('/').pop().split('.')[0];
         const img = new Image();
@@ -207,7 +202,6 @@
 
     function loadImageFromFile(file) {
         processing = true; currentDelaunayData = null; updateButtonState(false, false);
-        viewToggle.style.display = 'none';
         showStatus('Loading...');
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -305,8 +299,6 @@
         
         processing = false; 
         updateButtonState(true, true);
-        viewToggle.style.display = 'flex';
-        btnDelaunay.click();
         showStatus(null);
     }
 

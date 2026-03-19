@@ -52,9 +52,9 @@
     
     <div class="app-container" id="appContainer">
         
-        <div class="output-window">
-            <div id="paneOriginal" class="svg-pane active"></div>
-            <div id="paneDecomposed" class="svg-pane"></div>
+        <div class="output-window" id="outputWindow" style="cursor: pointer;" title="Click and hold to view original image">
+            <div id="paneOriginal" class="svg-pane"><img id="originalImagePreview" style="max-width: 100%; max-height: 100%; object-fit: contain;" /></div>
+            <div id="paneDecomposed" class="svg-pane active"></div>
             <div id="status">Processing...</div>
         </div>
 
@@ -70,11 +70,6 @@
                     <a href="#" data-val="assets/Marilyn_Monroe.svg">Marilyn Monroe (SVG)</a>
                     <a href="#" data-val="custom">📁 Upload custom...</a>
                 </div>
-            </div>
-            
-            <div class="control-toggle" id="viewToggle" style="display:none;">
-                <button id="btnOriginal" class="active">Original</button>
-                <button id="btnDecomposed">Decomposed</button>
             </div>
 
             <button class="control-button" id="downloadSVGButton" title="Download SVG" disabled>
@@ -344,15 +339,40 @@
     
     const paneOriginal = document.getElementById('paneOriginal');
     const paneDecomposed = document.getElementById('paneDecomposed');
-    const viewToggle = document.getElementById('viewToggle');
-    const btnOriginal = document.getElementById('btnOriginal');
-    const btnDecomposed = document.getElementById('btnDecomposed');
+    const outputWindow = document.getElementById('outputWindow');
+    const originalImagePreview = document.getElementById('originalImagePreview');
     const downloadSVGButtonEl = document.getElementById('downloadSVGButton');
 
     let currentDecomposedSVG = null;
     let currentRawSVG = null;
     let processing = false;
     let currentFileName = 'decomposed_art';
+
+    // Click/hold interaction
+    outputWindow.addEventListener('mousedown', () => {
+        if(currentDecomposedSVG) {
+            paneDecomposed.classList.remove('active');
+            paneOriginal.classList.add('active');
+        }
+    });
+    window.addEventListener('mouseup', () => {
+        if(currentDecomposedSVG) {
+            paneOriginal.classList.remove('active');
+            paneDecomposed.classList.add('active');
+        }
+    });
+    outputWindow.addEventListener('touchstart', (e) => {
+        if(currentDecomposedSVG) {
+            paneDecomposed.classList.remove('active');
+            paneOriginal.classList.add('active');
+        }
+    });
+    window.addEventListener('touchend', () => {
+        if(currentDecomposedSVG) {
+            paneOriginal.classList.remove('active');
+            paneDecomposed.classList.add('active');
+        }
+    });
 
     function showStatus(text) {
         if(text) { statusDiv.textContent = text; statusDiv.style.display = 'block'; }
@@ -389,15 +409,6 @@
         reader.readAsText(file);
     });
 
-    btnOriginal.addEventListener('click', () => {
-        btnOriginal.classList.add('active'); btnDecomposed.classList.remove('active');
-        paneOriginal.classList.add('active'); paneDecomposed.classList.remove('active');
-    });
-    btnDecomposed.addEventListener('click', () => {
-        btnDecomposed.classList.add('active'); btnOriginal.classList.remove('active');
-        paneDecomposed.classList.add('active'); paneOriginal.classList.remove('active');
-    });
-
     downloadSVGButtonEl.addEventListener('click', () => {
         if(currentDecomposedSVG) {
             const blob = new Blob([currentDecomposedSVG], { type: 'image/svg+xml;charset=utf-8' });
@@ -415,7 +426,7 @@
     function loadExampleSVG(url) {
         processing = true; showStatus('Loading...');
         currentFileName = url.split('/').pop().split('.')[0];
-        viewToggle.style.display = 'none'; downloadSVGButtonEl.disabled = true;
+        downloadSVGButtonEl.disabled = true;
         paneOriginal.innerHTML = ''; paneDecomposed.innerHTML = '';
         
         fetch(url)
@@ -439,9 +450,7 @@
                 currentDecomposedSVG = decomposer.processSVGContent(currentRawSVG);
                 if(currentDecomposedSVG) {
                     paneDecomposed.innerHTML = currentDecomposedSVG;
-                    viewToggle.style.display = 'flex';
                     downloadSVGButtonEl.disabled = false;
-                    btnDecomposed.click(); 
                     showStatus(null);
                 } else {
                     showStatus('Error parsing SVG.');

@@ -58,8 +58,8 @@
     </nav>
     
     <div class="app-container" id="appContainer">
-        <div class="output-window">
-            <div id="paneOriginal" class="svg-pane"><img id="originalImagePreview" /></div>
+        <div class="output-window" id="outputWindow" style="cursor: pointer;" title="Click and hold to view original image">
+            <div id="paneOriginal" class="svg-pane"><img id="originalImagePreview" style="max-width: 100%; max-height: 100%; object-fit: contain;" /></div>
             <div id="paneMatrix" class="svg-pane active"><canvas id="outputCanvas"></canvas></div>
             <div id="status">Processing...</div>
         </div>
@@ -83,11 +83,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l-5.32 5.32"></path></svg>
             </button>
 
-            <div class="control-toggle" id="viewToggle" style="display:none;">
-                <button id="btnOriginal">Original</button>
-                <button id="btnMatrix" class="active">Matrix Shift</button>
-            </div>
-            
+            <!-- viewToggle removed -->
             <div class="control-group">
                 <div class="slider-container">
                     <label for="hueSlider">HUE Matrix Shift</label>
@@ -273,9 +269,7 @@
 
     const paneOriginal = document.getElementById('paneOriginal');
     const paneMatrix = document.getElementById('paneMatrix');
-    const viewToggle = document.getElementById('viewToggle');
-    const btnOriginal = document.getElementById('btnOriginal');
-    const btnMatrix = document.getElementById('btnMatrix');
+    const outputWindow = document.getElementById('outputWindow');
 
     let originalImageData = null;
     let imageWidth = 0; let imageHeight = 0;
@@ -287,6 +281,32 @@
     // CACHED GRID STATE
     let cachedDelaunay = null;
     let cachedPointsForDelaunay = null;
+
+    // Click/hold interaction
+    outputWindow.addEventListener('mousedown', () => {
+        if(currentFinalPolygons) {
+            paneMatrix.classList.remove('active');
+            paneOriginal.classList.add('active');
+        }
+    });
+    window.addEventListener('mouseup', () => {
+        if(currentFinalPolygons) {
+            paneOriginal.classList.remove('active');
+            paneMatrix.classList.add('active');
+        }
+    });
+    outputWindow.addEventListener('touchstart', (e) => {
+        if(currentFinalPolygons) {
+            paneMatrix.classList.remove('active');
+            paneOriginal.classList.add('active');
+        }
+    });
+    window.addEventListener('touchend', () => {
+        if(currentFinalPolygons) {
+            paneOriginal.classList.remove('active');
+            paneMatrix.classList.add('active');
+        }
+    });
 
     const baseSettings = {
         numSeeds: 333, numBoundarySeeds: 11,
@@ -327,15 +347,6 @@
         if (originalImageData && !processing) generateGridAndProcess();
     });
 
-    btnOriginal.addEventListener('click', () => {
-        btnOriginal.classList.add('active'); btnMatrix.classList.remove('active');
-        paneOriginal.classList.add('active'); paneMatrix.classList.remove('active');
-    });
-    btnMatrix.addEventListener('click', () => {
-        btnMatrix.classList.add('active'); btnOriginal.classList.remove('active');
-        paneMatrix.classList.add('active'); paneOriginal.classList.remove('active');
-    });
-
     downloadSVGButtonEl.addEventListener('click', () => { if (currentFinalPolygons && !processing) downloadSVG(); });
     
     imageFileEl.addEventListener('change', (e) => {
@@ -355,7 +366,6 @@
 
     function loadExample(url) {
         processing = true; currentFinalPolygons = null; updateButtonState(false, false);
-        viewToggle.style.display = 'none';
         showStatus('Loading...');
         currentFileName = url.split('/').pop().split('.')[0];
         const img = new Image(); img.crossOrigin = "Anonymous";
@@ -374,7 +384,6 @@
 
     function loadImageFromFile(file) {
         processing = true; currentFinalPolygons = null; updateButtonState(false, false);
-        viewToggle.style.display = 'none';
         showStatus('Loading...');
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -496,8 +505,6 @@
 
         processing = false; 
         updateButtonState(true, true);
-        viewToggle.style.display = 'flex';
-        btnMatrix.click();
         showStatus(null); 
     }
 
