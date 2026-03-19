@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,16 +19,21 @@
         .svg-pane.active { display: flex; }
         .svg-pane svg { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .controls-bar { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 15px; padding-top: 20px; }
+        .controls-bar { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 15px; padding-top: 20px; position: relative;}
         
-        .control-select { padding: 10px 15px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; font-size: 1em; cursor: pointer; outline: none; }
-        .control-button, #processButton, #downloadSVGButton { padding: 0; background-color: #333; color: #fff; border: 1px solid #444; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        #processButton { width: 50px; height: 50px; background-color: #6DA9FF; border: none; color: #000; }
-        #processButton:hover:not(:disabled) { background-color: #87BFFF; }
-        #processButton:disabled { opacity: 0.5; cursor: not-allowed; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background-color: #222; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); z-index: 1; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; overflow: hidden; }
+        .dropdown-content a { color: white; padding: 12px 16px; text-decoration: none; display: block; font-size: 0.9em; text-align: center; border-bottom: 1px solid #333;}
+        .dropdown-content a:last-child { border-bottom: none; }
+        .dropdown-content a:hover { background-color: #333; }
+        .show { display: block; }
+
+        .control-button, #downloadSVGButton, #uploadMenuBtn { padding: 0; background-color: #333; color: #fff; border: 1px solid #444; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        #uploadMenuBtn { width: 50px; height: 50px; background-color: #6DA9FF; border: none; color: #000; }
+        #uploadMenuBtn:hover { background-color: #87BFFF; }
         #downloadSVGButton { width: 40px; height: 40px; }
         #downloadSVGButton:hover:not(:disabled) { background-color: #555; }
-        #downloadSVGButton:disabled { display: none; }
+        #downloadSVGButton:disabled { opacity: 0.3; cursor: not-allowed; }
         
         .control-toggle { display: flex; align-items: center; background: #222; border-radius: 20px; overflow: hidden; border: 1px solid #444; }
         .control-toggle button { flex: 1; border: none; background: none; padding: 10px 20px; font-size: 0.95em; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; }
@@ -50,27 +55,31 @@
         <div class="output-window">
             <div id="paneOriginal" class="svg-pane active"></div>
             <div id="paneDecomposed" class="svg-pane"></div>
-            <div id="status">Обработка...</div>
+            <div id="status">Processing...</div>
         </div>
 
         <input type="file" id="svgFile" accept=".svg,.txt">
         
         <div class="controls-bar">
-            <select id="exampleSelect" class="control-select">
-                <option value="assets/Mona_Lisa.svg">Мона Лиза (SVG)</option>
-                <option value="assets/Marilyn_Monroe.svg">Мэрилин Монро (SVG)</option>
-                <option value="custom">📁 Загрузить своё...</option>
-            </select>
-            
-            <button id="processButton" title="Загрузить/Разложить">▶</button>
-            <button class="control-button" id="downloadSVGButton" title="Скачать SVG" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </button>
+            <div class="dropdown">
+                <button class="control-button" id="uploadMenuBtn" title="Select SVG">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </button>
+                <div id="uploadDropdown" class="dropdown-content">
+                    <a href="#" data-val="assets/Mona_Lisa.svg">Mona Lisa (SVG)</a>
+                    <a href="#" data-val="assets/Marilyn_Monroe.svg">Marilyn Monroe (SVG)</a>
+                    <a href="#" data-val="custom">📁 Upload custom...</a>
+                </div>
+            </div>
             
             <div class="control-toggle" id="viewToggle" style="display:none;">
-                <button id="btnOriginal" class="active">Оригинал</button>
-                <button id="btnDecomposed">Декомпозиция</button>
+                <button id="btnOriginal" class="active">Original</button>
+                <button id="btnDecomposed">Decomposed</button>
             </div>
+
+            <button class="control-button" id="downloadSVGButton" title="Download SVG" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
         </div>
     </div>
 
@@ -329,9 +338,9 @@
     }
 
     const fileInput=document.getElementById('svgFile');
-    const processButton=document.getElementById('processButton');
+    const uploadMenuBtn = document.getElementById('uploadMenuBtn');
+    const uploadDropdown = document.getElementById('uploadDropdown');
     const statusDiv=document.getElementById('status');
-    const exampleSelect = document.getElementById('exampleSelect');
     
     const paneOriginal = document.getElementById('paneOriginal');
     const paneDecomposed = document.getElementById('paneDecomposed');
@@ -343,37 +352,41 @@
     let currentDecomposedSVG = null;
     let currentRawSVG = null;
     let processing = false;
+    let currentFileName = 'decomposed_art';
 
     function showStatus(text) {
         if(text) { statusDiv.textContent = text; statusDiv.style.display = 'block'; }
         else { statusDiv.style.display = 'none'; }
     }
 
-    exampleSelect.addEventListener('change', (e) => {
-        if (e.target.value === 'custom') fileInput.click();
-        else loadExampleSVG(e.target.value);
+    // Dropdown logic
+    uploadMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        uploadDropdown.classList.toggle('show');
+    });
+    window.addEventListener('click', (e) => {
+        if (!uploadMenuBtn.contains(e.target)) uploadDropdown.classList.remove('show');
+    });
+    uploadDropdown.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            uploadDropdown.classList.remove('show');
+            const val = e.target.getAttribute('data-val');
+            if (val === 'custom') fileInput.click();
+            else loadExampleSVG(val);
+        });
     });
 
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        if (!file) { exampleSelect.selectedIndex = 0; return; }
-        exampleSelect.options[exampleSelect.options.length-1].text = `📁 ${file.name}`;
-        exampleSelect.value = 'custom';
+        if (!file) return;
+        currentFileName = file.name.split('.')[0];
         const reader = new FileReader();
         reader.onload = (ev) => {
             currentRawSVG = ev.target.result;
             processRawSVG();
         };
         reader.readAsText(file);
-    });
-
-    processButton.addEventListener('click', () => {
-        if(!currentRawSVG && !processing) {
-            if(exampleSelect.value === 'custom') fileInput.click();
-            else loadExampleSVG(exampleSelect.value);
-        } else if (currentRawSVG && !processing) {
-            processRawSVG();
-        }
     });
 
     btnOriginal.addEventListener('click', () => {
@@ -390,18 +403,19 @@
             const blob = new Blob([currentDecomposedSVG], { type: 'image/svg+xml;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url;
-            a.download = (exampleSelect.value !== 'custom' ? exampleSelect.value.split('/').pop().split('.')[0] : 'decomposed_art') + '_decomposed.svg';
+            a.download = currentFileName + '_decomposed.svg';
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        loadExampleSVG(exampleSelect.value);
+        loadExampleSVG('assets/Mona_Lisa.svg');
     });
 
     function loadExampleSVG(url) {
-        processing = true; showStatus('Загрузка...');
-        viewToggle.style.display = 'none'; downloadSVGButtonEl.style.display = 'none';
+        processing = true; showStatus('Loading...');
+        currentFileName = url.split('/').pop().split('.')[0];
+        viewToggle.style.display = 'none'; downloadSVGButtonEl.disabled = true;
         paneOriginal.innerHTML = ''; paneDecomposed.innerHTML = '';
         
         fetch(url)
@@ -411,12 +425,12 @@
                 processRawSVG();
             })
             .catch(err => {
-                showStatus('Ошибка загрузки примера.'); processing = false;
+                showStatus('Error loading example.'); processing = false;
             });
     }
 
     function processRawSVG() {
-        processing = true; showStatus('Обработка...');
+        processing = true; showStatus('Processing...');
         paneOriginal.innerHTML = currentRawSVG;
         
         setTimeout(() => {
@@ -426,18 +440,18 @@
                 if(currentDecomposedSVG) {
                     paneDecomposed.innerHTML = currentDecomposedSVG;
                     viewToggle.style.display = 'flex';
-                    downloadSVGButtonEl.style.display = 'flex';
+                    downloadSVGButtonEl.disabled = false;
                     btnDecomposed.click(); 
-                    showStatus(null); // Убираем плашку, никаких "Готово"
+                    showStatus(null);
                 } else {
-                    showStatus('Ошибка парсинга SVG.');
+                    showStatus('Error parsing SVG.');
                 }
             } catch(e) {
-                showStatus(`Ошибка: ${e.message}`);
+                showStatus(`Error: ${e.message}`);
             }
             processing = false;
         }, 50);
     }
 </script>
 </body>
-</html>EOF
+</html>
