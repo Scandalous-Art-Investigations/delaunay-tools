@@ -304,10 +304,9 @@ async function generateBestVariant(imagePath, outputPrefix, numSeeds, iterations
 }
 
 async function main() {
-    // Generate 11 variants for each and pick the highest edge-resonance score
-    await generateBestVariant('Mona_Lisa.png', 'assets/Mona_Lisa_curated', 111, 11);
-    await generateBestVariant('Mona_Lisa.png', 'assets/Mona_Lisa_curated', 333, 11);
-    await generateBestVariant('Mona_Lisa.png', 'assets/Mona_Lisa_curated', 666, 11);
+    await generateBestVariant('Marilyn_Monroe.jpg', 'assets/Marilyn_Monroe_curated', 111, 11);
+    await generateBestVariant('Marilyn_Monroe.jpg', 'assets/Marilyn_Monroe_curated', 333, 11);
+    await generateBestVariant('Marilyn_Monroe.jpg', 'assets/Marilyn_Monroe_curated', 666, 11);
 }
 
 main().catch(console.error);
