@@ -27,12 +27,12 @@
         .dropdown-content a:hover { background-color: #333; }
         .show { display: block; }
 
-        .control-button, #regenerateButton, #downloadSVGButton, #uploadMenuBtn { padding: 0; background-color: #333; color: #fff; border: 1px solid #444; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .control-button, #processButton, #downloadSVGButton, #uploadMenuBtn { padding: 0; background-color: #333; color: #fff; border: 1px solid #444; border-radius: 50%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
         #uploadMenuBtn { width: 50px; height: 50px; background-color: #6DA9FF; border: none; color: #000; }
         #uploadMenuBtn:hover { background-color: #87BFFF; }
-        #regenerateButton, #downloadSVGButton { width: 40px; height: 40px; }
-        #regenerateButton:hover:not(:disabled), #downloadSVGButton:hover:not(:disabled) { background-color: #555; }
-        #regenerateButton:disabled, #downloadSVGButton:disabled { opacity: 0.3; cursor: not-allowed; }
+        #processButton { width: 40px; height: 40px; }
+        #processButton:hover:not(:disabled), #downloadSVGButton:hover:not(:disabled) { background-color: #555; }
+        #processButton:disabled, #downloadSVGButton:disabled { opacity: 0.3; cursor: not-allowed; }
         
         .control-toggle { display: flex; align-items: center; background: #222; border-radius: 20px; overflow: hidden; border: 1px solid #444; }
         .control-toggle button { flex: 1; border: none; background: none; padding: 10px 20px; font-size: 0.95em; font-weight: bold; color: #888; cursor: pointer; transition: 0.2s; }
@@ -75,8 +75,8 @@
                 </div>
             </div>
 
-            <button class="control-button" id="regenerateButton" title="Regenerate Mesh" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-9.21l-5.32 5.32"></path></svg>
+            <button class="control-button" id="processButton" title="Process" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             </button>
             
             <!-- viewToggle removed -->
@@ -92,7 +92,7 @@
     const colorTrianglesEl = document.getElementById('colorTriangles');
     const uploadMenuBtn = document.getElementById('uploadMenuBtn');
     const uploadDropdown = document.getElementById('uploadDropdown');
-    const regenerateButton = document.getElementById('regenerateButton');
+    const processButton = document.getElementById('processButton');
     const downloadSVGButtonEl = document.getElementById('downloadSVGButton');
     const statusEl = document.getElementById('status');
     const sourceCanvas = document.getElementById('sourceCanvas');
@@ -159,7 +159,7 @@
         });
     });
 
-    regenerateButton.addEventListener('click', () => {
+    processButton.addEventListener('click', () => {
         if (originalImageData && !processing) processImage();
     });
 
@@ -177,7 +177,7 @@
     });
 
     function updateButtonState(imageLoaded, imageProcessed = false) {
-        regenerateButton.disabled = !imageLoaded || processing;
+        processButton.disabled = !imageLoaded || processing;
         downloadSVGButtonEl.disabled = !imageProcessed || processing;
     }
 
