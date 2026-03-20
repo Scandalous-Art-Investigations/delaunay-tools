@@ -249,15 +249,17 @@
         return res;
     }
 
-    async function processImage() {
+    function processImage() {
         if (processing) return;
         processing = true; updateButtonState(true, false);
         if (!d3 || !d3.Delaunay || !originalImageData) { processing = false; updateButtonState(false, false); showStatus(); return; }
         
         showStatus('Processing...');
-        await new Promise(resolve => setTimeout(resolve, 20));
-
-        const cArea = imageWidth * imageHeight; const bArea = baseSettings.imageWidth * baseSettings.imageHeight;
+        // Force a layout recalculation to ensure the status shows before heavy work
+        void outputCanvas.offsetWidth;
+        
+        setTimeout(() => {
+            const cArea = imageWidth * imageHeight; const bArea = baseSettings.imageWidth * baseSettings.imageHeight;
         let aScale = Math.max(0.1, Math.min(10.0, (bArea > 0 && cArea > 0) ? (cArea / bArea) : 1.0));
         let lScale = Math.max(0.25, Math.min(4.0, (Math.min(baseSettings.imageWidth, baseSettings.imageHeight) > 0) ? (Math.min(imageWidth, imageHeight) / Math.min(baseSettings.imageWidth, baseSettings.imageHeight)) : 1.0));
 
@@ -304,6 +306,7 @@
         processing = false; 
         updateButtonState(true, true);
         showStatus(null);
+        }, 100);
     }
 
     function generateSeeds(numDesiredSeeds, powerFactor, edgeThreshold, edgeWeightFactor, minDistance, width, height, imageData) {
