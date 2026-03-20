@@ -49,7 +49,7 @@
 
 <script>
     const imageFileEl = document.getElementById('imageFile');
-    const colorTrianglesEl = document.getElementById('colorTriangles');
+    
     const uploadMenuBtn = document.getElementById('uploadMenuBtn');
     const uploadDropdown = document.getElementById('uploadDropdown');
     const processButton = document.getElementById('processButton');
@@ -236,7 +236,7 @@
         outputCanvas.height = imageHeight;
 
         outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
-        if (colorTrianglesEl.checked) {
+        if (true) {
             outputCtx.drawImage(sourceCanvas, 0, 0, imageWidth, imageHeight);
         } else {
             outputCtx.fillStyle = "#111"; outputCtx.fillRect(0, 0, imageWidth, imageHeight);
@@ -249,7 +249,7 @@
             outputCtx.moveTo(p1[0], p1[1]); outputCtx.lineTo(p2[0], p2[1]); outputCtx.lineTo(p3[0], p3[1]);
             outputCtx.closePath();
 
-            if (colorTrianglesEl.checked) {
+            if (true) {
                 const col = getPixelColor(originalImageData, (p1[0]+p2[0]+p3[0])/3, (p1[1]+p2[1]+p3[1])/3);
                 outputCtx.fillStyle = `rgba(${col.r},${col.g},${col.b},${col.a/255})`;
                 outputCtx.fill();
@@ -332,12 +332,12 @@
     function generateSVGString() {
         if (!currentDelaunayData || !originalImageData) return null;
         const { delaunay, pointsForDelaunay } = currentDelaunayData;
-        let svgString = `<svg width="${imageWidth}" height="${imageHeight}" viewBox="0 0 ${imageWidth} ${imageHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color: ${colorTrianglesEl.checked ? 'transparent' : '#111'};">\n`;
+        let svgString = `<svg width="${imageWidth}" height="${imageHeight}" viewBox="0 0 ${imageWidth} ${imageHeight}" xmlns="http://www.w3.org/2000/svg" style="background-color: ${'transparent'};">\n`;
         for (let i = 0; i < delaunay.triangles.length; i += 3) {
             const p1 = pointsForDelaunay[delaunay.triangles[i]], p2 = pointsForDelaunay[delaunay.triangles[i+1]], p3 = pointsForDelaunay[delaunay.triangles[i+2]];
             if (!p1 || !p2 || !p3) continue;
             let fill = "none", stroke = "#444", strokeW = 0.5;
-            if (colorTrianglesEl.checked) {
+            if (true) {
                 const c = getPixelColor(originalImageData, (p1[0]+p2[0]+p3[0])/3, (p1[1]+p2[1]+p3[1])/3);
                 fill = c.a===255 ? `rgb(${c.r},${c.g},${c.b})` : `rgba(${c.r},${c.g},${c.b},${(c.a/255).toFixed(2)})`;
                 stroke = `rgba(${Math.floor(c.r*0.7)},${Math.floor(c.g*0.7)},${Math.floor(c.b*0.7)},0.6)`;
