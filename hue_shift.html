@@ -484,13 +484,14 @@
         return seeds;
     }
 
-    function generateGridAndProcess() {
+    async function generateGridAndProcess() {
         if (!originalImageData) return;
         processing = true; updateButtonState(true, false);
         showStatus('Processing...');
         void outputCanvas.offsetWidth;
 
-        setTimeout(() => {
+        await new Promise(r => setTimeout(r, 50));
+
             const cArea = imageWidth * imageHeight; const bArea = 1024 * 1536;
         let aScale = Math.max(0.1, Math.min(10.0, (bArea > 0 && cArea > 0) ? (cArea / bArea) : 1.0));
         let lScale = Math.max(0.25, Math.min(4.0, (1024 > 0) ? (Math.min(imageWidth, imageHeight) / 1024) : 1.0));
@@ -509,7 +510,6 @@
         processing = false; 
         updateButtonState(true, true);
         showStatus(null); 
-        }, 100);
     }
 
     function applyHueShiftFast() {
