@@ -82,7 +82,7 @@
             </div>
 
             <button class="control-button" id="processButton" title="Process" disabled>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             </button>
 
             <!-- viewToggle removed -->
@@ -484,13 +484,14 @@
         return seeds;
     }
 
-    async function generateGridAndProcess() {
+    function generateGridAndProcess() {
         if (!originalImageData) return;
         processing = true; updateButtonState(true, false);
         showStatus('Processing...');
-        await new Promise(resolve => setTimeout(resolve, 20));
+        void outputCanvas.offsetWidth;
 
-        const cArea = imageWidth * imageHeight; const bArea = 1024 * 1536;
+        setTimeout(() => {
+            const cArea = imageWidth * imageHeight; const bArea = 1024 * 1536;
         let aScale = Math.max(0.1, Math.min(10.0, (bArea > 0 && cArea > 0) ? (cArea / bArea) : 1.0));
         let lScale = Math.max(0.25, Math.min(4.0, (1024 > 0) ? (Math.min(imageWidth, imageHeight) / 1024) : 1.0));
         const numSeeds = Math.max(100, Math.round(baseSettings.numSeeds * aScale));
@@ -508,6 +509,7 @@
         processing = false; 
         updateButtonState(true, true);
         showStatus(null); 
+        }, 100);
     }
 
     function applyHueShiftFast() {
